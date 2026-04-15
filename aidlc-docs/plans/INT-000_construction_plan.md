@@ -1,8 +1,20 @@
 # INT-000 Construction Plan
 
-- [ ] Create Domain Design
-- [ ] Create Logical Design
-- [ ] Create Component Design
-- [ ] Implement/Update Code & Unit Tests
-- [ ] Create/Update Deployment Units
+## 実装フェーズ（Unit → Bolt 順）
 
+### UNIT-001: マスタ管理・QR生成
+- [ ] bolt-001: DBスキーマ定義 + マイグレーション実行
+- [ ] bolt-002: 備品マスタCRUD + QRコード表示
+- [ ] bolt-003: メンバーマスタCRUD
+
+### UNIT-002: QRスキャン・貸出返却
+- [ ] bolt-001: QRスキャン画面 + 貸出フォーム（メンバー選択/フリー入力 + 自動期限計算）
+- [ ] bolt-002: 返却操作フォーム
+
+### UNIT-003: 貸出状況ダッシュボード
+- [ ] bolt-001: ダッシュボード（貸出中一覧 + 期限超過ハイライト + 履歴表示）
+
+## 技術準備
+- [ ] qrcode ライブラリのインストール
+- [ ] html5-qrcode ライブラリのインストール
+- [ ] DBマイグレーション実行確認

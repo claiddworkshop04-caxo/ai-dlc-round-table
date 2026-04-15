@@ -1,11 +1,34 @@
 # INT-000 Units Plan
 
-> Purpose: Procedure (with checkboxes) to decompose user story groups into Units (work units that can be developed in parallel)
+## Unit 構成
 
-- [ ] Review story list (`aidlc-docs/story-artifacts/`)
-- [ ] Organize dependencies and boundaries (what to include in the same Unit)
-- [ ] List Unit candidates and briefly describe purpose/scope of each
-- [ ] Assign user stories to each Unit
-- [ ] Confirm parallel execution feasibility between Units
-- [ ] Human reviews and reflects corrections
+| Unit ID | タイトル | 担当User Stories | 説明 |
+|---------|----------|-----------------|------|
+| UNIT-001 | マスタ管理・QR生成 | US-001, US-002, US-003 | DBスキーマ・備品/メンバーCRUD・QRコード生成 |
+| UNIT-002 | QRスキャン・貸出返却 | US-004, US-005 | QRスキャン画面・貸出/返却操作 |
+| UNIT-003 | 貸出状況ダッシュボード | US-006, US-007 | 貸出一覧・期限超過ハイライト |
 
+## 依存関係
+- UNIT-002 は UNIT-001 の完了（DBスキーマ・備品マスタ）に依存
+- UNIT-003 は UNIT-001 の完了（DBスキーマ）と UNIT-002（貸出データ）に依存
+- 実装順: UNIT-001 → UNIT-002 → UNIT-003
+
+## Bolt 分解
+
+### UNIT-001 のBolt
+| Bolt | 内容 |
+|------|------|
+| bolt-001 | DBスキーマ定義（items/members/loans）+ マイグレーション |
+| bolt-002 | 備品マスタCRUD（一覧・新規・編集・削除）+ QRコード表示 |
+| bolt-003 | メンバーマスタCRUD（一覧・新規・編集・削除） |
+
+### UNIT-002 のBolt
+| Bolt | 内容 |
+|------|------|
+| bolt-001 | QRスキャン画面 + 貸出フォーム（メンバー選択/フリー入力） |
+| bolt-002 | 返却操作フォーム |
+
+### UNIT-003 のBolt
+| Bolt | 内容 |
+|------|------|
+| bolt-001 | ダッシュボード（貸出中一覧 + 期限超過ハイライト + 履歴表示） |

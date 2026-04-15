@@ -1,100 +1,84 @@
-import { revalidatePath } from "next/cache";
-import { desc } from "drizzle-orm";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { comments } from "@/src/schema";
+import { eq, isNull } from "drizzle-orm";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { loans, items } from "@/src/schema";
 
 export const dynamic = "force-dynamic";
 
-async function getComments() {
+async function getActiveLoans() {
   const { db } = await import("@/src/db");
-  return db.select().from(comments).orderBy(desc(comments.createdAt));
+  return db
+    .select({
+      loanId: loans.id,
+      itemId: loans.itemId,
+      itemName: items.name,
+      borrowerName: loans.borrowerName,
+      loanedAt: loans.loanedAt,
+      dueDate: loans.dueDate,
+    })
+    .from(loans)
+    .innerJoin(items, eq(loans.itemId, items.id))
+    .where(isNull(loans.returnedAt))
+    .orderBy(loans.dueDate);
 }
 
-export default async function Page() {
-  const list = await getComments();
-
-  async function create(formData: FormData) {
-    "use server";
-    const { db } = await import("@/src/db");
-    const comment = formData.get("comment");
-    if (typeof comment !== "string" || comment.trim() === "") {
-      return;
-    }
-    await db.insert(comments).values({ comment });
-    revalidatePath("/");
-  }
+export default async function DashboardPage() {
+  const activeLoans = await getActiveLoans();
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center justify-center bg-muted/40 px-4 py-16">
-      <Card className="w-full max-w-md shadow-md">
-        <CardHeader>
-          <CardTitle>Comments</CardTitle>
-          <CardDescription>
-            コメントを入力して送信すると、一覧に反映されます。
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form action={create} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="comment">コメント</Label>
-              <Input
-                id="comment"
-                name="comment"
-                type="text"
-                placeholder="write a comment"
-                required
-                autoComplete="off"
-              />
-            </div>
-            <Button type="submit" className="w-full">
-              Submit
-            </Button>
-          </form>
+    <div className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">貸出中一覧</h1>
+        <Link href="/scan" className={cn(buttonVariants())}>
+          QRスキャン
+        </Link>
+      </div>
 
-          <Separator />
-
-          <section aria-labelledby="comments-heading">
-            <h2
-              id="comments-heading"
-              className="mb-3 text-sm font-medium text-muted-foreground"
-            >
-              登録済み（新しい順）
-            </h2>
-            {list.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                まだコメントはありません。
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {list.map((row) => (
-                  <li
-                    key={row.id}
-                    className="rounded-lg border border-border bg-muted/50 px-3 py-2.5"
-                  >
-                    <p className="text-sm text-foreground">{row.comment}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {row.createdAt.toLocaleString("ja-JP", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </CardContent>
-      </Card>
+      {activeLoans.length === 0 ? (
+        <p className="text-sm text-muted-foreground">現在貸出中の備品はありません。</p>
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left text-muted-foreground">
+              <tr>
+                <th className="px-4 py-3 font-medium">備品名</th>
+                <th className="px-4 py-3 font-medium">借用者</th>
+                <th className="px-4 py-3 font-medium">貸出日</th>
+                <th className="px-4 py-3 font-medium">返却期限</th>
+                <th className="px-4 py-3 font-medium">操作</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {activeLoans.map((loan) => {
+                const isOverdue = loan.dueDate < today;
+                return (
+                  <tr key={loan.loanId} className={isOverdue ? "bg-red-50" : "bg-background"}>
+                    <td className="px-4 py-3 font-medium">{loan.itemName}</td>
+                    <td className="px-4 py-3">{loan.borrowerName}</td>
+                    <td className="px-4 py-3">{loan.loanedAt}</td>
+                    <td className="px-4 py-3">
+                      <span className={isOverdue ? "font-semibold text-red-600" : ""}>
+                        {loan.dueDate}
+                        {isOverdue && " ⚠ 期限超過"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/items/${loan.itemId}/loan`}
+                        className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                      >
+                        返却
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

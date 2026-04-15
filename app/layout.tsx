@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Comments",
-  description: "Neon + Drizzle サンプル",
+  title: "備品管理",
+  description: "QRコードで備品の貸出・返却を管理するアプリ",
 };
 
 export default function RootLayout({
@@ -27,7 +27,28 @@ export default function RootLayout({
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <header className="border-b bg-background">
+          <nav className="mx-auto flex max-w-5xl items-center gap-6 px-4 py-3">
+            <a href="/" className="text-base font-semibold tracking-tight">
+              備品管理
+            </a>
+            <a href="/items" className="text-sm text-muted-foreground hover:text-foreground">
+              備品マスタ
+            </a>
+            <a href="/members" className="text-sm text-muted-foreground hover:text-foreground">
+              メンバー
+            </a>
+            <a href="/scan" className="text-sm text-muted-foreground hover:text-foreground">
+              QRスキャン
+            </a>
+            <a href="/loans" className="text-sm text-muted-foreground hover:text-foreground">
+              履歴
+            </a>
+          </nav>
+        </header>
+        <main className="flex-1">{children}</main>
+      </body>
     </html>
   );
 }

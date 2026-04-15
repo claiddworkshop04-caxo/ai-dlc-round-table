@@ -1,7 +1,11 @@
-# INT-000 Non-Functional Requirements (NFR)
+# INT-000 非機能要件 (NFR)
 
-- Performance
-- Security
-- Availability
-- Audit/Compliance
+## 特記事項
+本IntentはワークショップPoCのため、非機能要件は最小限とする。
+スピーディな実装を優先し、本番環境レベルの品質保証は対象外。
 
+## 最低限の考慮事項
+- 認証なし（誰でもアクセス可能）
+- Netlify へのデプロイが通ること
+- Neon PostgreSQL への接続が成立すること
+- モバイルブラウザ（スマートフォン）でQRスキャンが動作すること
